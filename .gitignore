@@ -6,6 +6,10 @@ Thumbs.db.meta
 .vs
 .vscode
 
+# Build files
+*.apk
+*.obb
+
 # Visual Studio files
 *.cachefile
 *.pidb
@@ -22,9 +26,7 @@ Thumbs.db.meta
 [Rr]elease*/
 Builds/
 ipch/
-Library/
+Library*/
 obj/
 Temp/
-x86
-x64
-Packages/
+packages/

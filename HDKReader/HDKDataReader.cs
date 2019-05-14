@@ -1,29 +1,73 @@
 ﻿using System;
+using System.IO;
 
 namespace HDKReader
 {
     public static class HDKDataReader
     {
-        public static bool DecodeSensorConfig(ref byte[] buffer, int size, ref HDKVector3 acceleration, ref HDKQuaternion orientation)
+        private static float[] SensorData = new float[7];
+        private static byte[] TempBuffer = new byte[4];
+
+        public static bool DecodeSensorData(ref byte[] buffer, int size, ref Vector3 acceleration, ref Quaternion orientation)
         {
-            if (size != 16)
+            var index = 1;
+
+            if (size - index != 16)
             {
-                //Console.WriteLine($"Invalid packet size (expected 16 but got {size}");
-                //return false;
+                Console.WriteLine($"Invalid packet size (expected 16 but got {size}");
+                return false;
             }
 
-            var index = 1;
             Read8(ref buffer, ref index); // Version
             Read8(ref buffer, ref index); // Sequence
 
-            for (var i = 0; i < 4; i++)
-                orientation.Set(i, Read16(ref buffer, ref index));
+            orientation.Set(
+                Read16(ref buffer, ref index),
+                Read16(ref buffer, ref index),
+                Read16(ref buffer, ref index),
+                Read16(ref buffer, ref index));
 
-            for (var i = 0; i < 3; i++)
-                acceleration.Set(i, Read16(ref buffer, ref index));
+            acceleration.Set(
+                Read16(ref buffer, ref index),
+                Read16(ref buffer, ref index),
+                Read16(ref buffer, ref index));
 
             return true;
         }
+
+        public static ref float[] DecodeSensorData(ref byte[] buffer, int size)
+        {
+            if (size - 1 != 16)
+            {
+                Console.WriteLine($"Invalid packet size (expected 16 but got {size}");
+                return ref SensorData;
+            }
+
+            using (var stream = new MemoryStream(buffer))
+            {
+                stream.Position = 3;
+
+                // Orientation
+                SensorData[0] = ToFloat(ReadInt16(stream), 14);
+                SensorData[1] = ToFloat(ReadInt16(stream), 14);
+                SensorData[2] = ToFloat(ReadInt16(stream), 14);
+                SensorData[3] = ToFloat(ReadInt16(stream), 14);
+                // Acceleration
+                SensorData[4] = ToFloat(ReadInt16(stream), 14);
+                SensorData[5] = ToFloat(ReadInt16(stream), 14);
+                SensorData[6] = ToFloat(ReadInt16(stream), 14);
+            }
+
+            return ref SensorData;
+        }
+
+        private static short ReadInt16(MemoryStream stream)
+        {
+            stream.Read(TempBuffer, 0, 4);
+            return BitConverter.ToInt16(TempBuffer, 0);
+        }
+
+        private static float ToFloat(int data, int btw) => ((float)data) / (1 << btw);
 
         #region Read / Write
 
@@ -40,13 +84,6 @@ namespace HDKReader
         private static int Read16(ref byte[] buffer, ref int index)
         {
             var value = buffer[index] | (buffer[index + 1] << 8);
-            index += 2;
-            return value;
-        }
-
-        private static float Read162(ref byte[] buffer, ref int index)
-        {
-            var value = BitConverter.ToSingle(buffer, index);
             index += 2;
             return value;
         }

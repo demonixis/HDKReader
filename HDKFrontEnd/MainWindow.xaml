@@ -1,0 +1,34 @@
+﻿<Window x:Class="HDKFrontEnd.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HDKFrontEnd"
+        mc:Ignorable="d"
+        Title="HDK Reader UI" Height="191.699" Width="258.89" ResizeMode="NoResize">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="20" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Label Content="Acceleration" FontWeight="DemiBold" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="AccelerationTB" Text="X=0 Y=0, Z=0" Width="200"/>
+            </StackPanel>
+
+            <Label Content="Orientation" FontWeight="DemiBold" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="OrientationTB" Text="X=0, Y=0, Z=0, W=0" Width="200" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button Content="Start" Width="100" Margin="0, 0, 15, 0" Click="OnStartClicked" />
+            <Button Content="Stop" Width="100" Click="OnStopClicked" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <TextBlock x:Name="StatusTB" Text="Not Connected" Margin="2" />
+        </StackPanel>
+    </Grid>
+</Window>

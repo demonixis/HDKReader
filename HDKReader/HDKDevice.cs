@@ -35,7 +35,7 @@ namespace HDKReader
             WindowsHidDeviceFactory.Register();
         }
 
-        public async void Initiliaze()
+        public void Initialize()
         {
             Device?.Close();
             m_DeviceListener.DeviceInitialized += OnDeviceInitialized;
@@ -59,12 +59,14 @@ namespace HDKReader
             return Task.Run(async () =>
             {
                 var devices = await DeviceManager.Current.GetDevicesAsync(m_DeviceDefinitions);
-                Device = devices.FirstOrDefault();
+                var device = devices.FirstOrDefault();
 
-                if (Device == null)
+                if (device == null)
                     throw new Exception("No devices found");
 
-                await Device.InitializeAsync();
+                await device.InitializeAsync();
+
+                OnDeviceInitialized(this, new DeviceEventArgs(device));
             });
         }
 
@@ -74,6 +76,11 @@ namespace HDKReader
             {
                 DataBuffer = await Device.ReadAsync();
             });
+        }
+
+        public async Task<byte[]> FetchAsync()
+        {
+            return await Device.ReadAsync();
         }
 
         private void OnDeviceInitialized(object sender, DeviceEventArgs e)
