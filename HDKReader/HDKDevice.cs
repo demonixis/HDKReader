@@ -45,15 +45,6 @@ namespace HDKReader
             Console.WriteLine("HDKDevice Initialization");
         }
 
-        public void Shutdown()
-        {
-            Device?.Close();
-            m_DeviceListener.DeviceInitialized -= OnDeviceInitialized;
-            m_DeviceListener.DeviceDisconnected -= OnDeviceDisconnected;
-
-            Console.WriteLine("HDKDevice Shutdown");
-        }
-
         public Task InitializeAsync()
         {
             return Task.Run(async () =>
@@ -70,6 +61,15 @@ namespace HDKReader
             });
         }
 
+        public void Close()
+        {
+            Device?.Close();
+            m_DeviceListener.DeviceInitialized -= OnDeviceInitialized;
+            m_DeviceListener.DeviceDisconnected -= OnDeviceDisconnected;
+
+            Console.WriteLine("HDKDevice Shutdown");
+        }
+
         public Task Fetch()
         {
             return Task.Run(async () =>
@@ -78,10 +78,7 @@ namespace HDKReader
             });
         }
 
-        public async Task<byte[]> FetchAsync()
-        {
-            return await Device.ReadAsync();
-        }
+        public async Task<byte[]> FetchAsync() => await Device.ReadAsync();
 
         private void OnDeviceInitialized(object sender, DeviceEventArgs e)
         {

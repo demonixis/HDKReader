@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HDKDataReader.cs" />
-    <Compile Include="HDKCore.cs" />
     <Compile Include="HDKDevice.cs" />
     <Compile Include="HDKMath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
