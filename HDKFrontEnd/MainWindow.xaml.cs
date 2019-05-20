@@ -40,18 +40,6 @@ namespace HDKFrontEnd
             StatusTB.Text = status.ToString();
         }
 
-        public Vector3 FromQ(Quaternion q2)
-        {
-            var q = new Quaternion(q2.W, q2.Z, q2.X, q2.Z);
-            Vector3 pitchYawRoll;
-            pitchYawRoll.Y = (float)Math.Atan2(2f * q.X * q.W + 2f * q.Y * q.Z, 1 - 2f * (q.Z * q.Z + q.W * q.W));
-            pitchYawRoll.X = (float)Math.Asin(2f * (q.X * q.Z - q.W * q.Y));
-            pitchYawRoll.Z = (float)Math.Atan2(2f * q.X * q.Y + 2f * q.Z * q.W, 1 - 2f * (q.Y * q.Y + q.Z * q.Z));
-            return new Vector3(Rad2Deg(pitchYawRoll.X), Rad2Deg(pitchYawRoll.Y), Rad2Deg(pitchYawRoll.Z));
-        }
-
-        private float Rad2Deg(float rad) => (180.0f * rad / ((float)Math.PI));
-
         private void StartLoop()
         {
             StopLoop();
@@ -87,11 +75,12 @@ namespace HDKFrontEnd
             var values = m_HDKDevice.Quaternion;
             Send(JsonConvert.SerializeObject(values));
 
-            OrientationTB.Text = string.Format("X: {0:0.000}, Y: {1:0.000}, Z: {2:0.000}, W: {3:0.000}", values[0], values[1], values[2], values[3]);
+            OrientationTB.Text = string.Format("X: {0:0.0}, Y: {1:0.0}, Z: {2:0.0}, W: {3:0.0}", values[0], values[1], values[2], values[3]);
 
-            var q = new Quaternion(values[0], values[1], values[2], values[3]);
-            var v = FromQ(q);
-            RotationTB.Text = v.ToString();
+            var quaternion = new Quaternion(values[0], values[1], values[2], values[3]);
+            var euler = MathUtils.ToEuler(quaternion);
+            MathUtils.Rad2Deg(ref euler);
+            RotationTB.Text = string.Format("X: {0:0.0}, Y: {1:0.0}, Z: {2:0.0}", euler.X, euler.Y, euler.Z);
         }
 
         #region Server Management

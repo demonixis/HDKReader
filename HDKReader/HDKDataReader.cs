@@ -8,19 +8,27 @@ namespace HDKReader
 
         public static void DecodeQuaternion(ref byte[] input, ref float[] output)
         {
-            var index = 3;
-            output[0] = (float)ReadInt16(ref input, index) / (1 << 15);
-            output[1] = (float)ReadInt16(ref input, index + 2) / (1 << 15);
-            output[2] = (float)ReadInt16(ref input, index + 4) / (1 << 15);
-            output[3] = (float)ReadInt16(ref input, index + 6) / (1 << 15);
+            // 0: 0
+            // 1: Code
+            // 2: Sequence
+            var index = 2;
+            var x = (float)Read16(ref input, index) / (1 << 14);
+            var y = (float)Read16(ref input, index + 2) / (1 << 14);
+            var z = (float)Read16(ref input, index + 4) / (1 << 14);
+            var w = (float)Read16(ref input, index + 6) / (1 << 14);
+
+            output[0] = x;
+            output[1] = y;
+            output[2] = y;
+            output[3] = w;
         }
 
-        private static ushort ReadInt16(ref byte[] arr, int index)
+        private static short Read16(ref byte[] arr, int index)
         {
-            TempBuffer[0] = arr[index];
-            TempBuffer[1] = arr[index + 1];
-
-            return BitConverter.ToUInt16(TempBuffer, 0);
+            byte lsb = arr[index];
+            byte msb = arr[index + 1];
+            short result = (short)(lsb | msb << 8);
+            return result;
         }
     }
 }

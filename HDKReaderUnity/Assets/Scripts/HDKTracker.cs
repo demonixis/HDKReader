@@ -8,10 +8,14 @@ public class HDKTracker : MonoBehaviour
     private Quaternion m_Quaternion;
     private float[] m_DataBuffer = new float[7];
 
-
     private void Start()
     {
-        if (m_WebSocket?.ReadyState == WebSocketState.Connecting)
+        Connect();
+    }
+
+    public void Connect()
+    {
+        if (m_WebSocket != null)
             return;
 
         m_WebSocket = new WebSocket($"ws://127.0.0.1:8181");
@@ -20,6 +24,17 @@ public class HDKTracker : MonoBehaviour
         m_WebSocket.OnError += (s, e) => Debug.Log(e.Message);
         m_WebSocket.OnClose += (s, e) => Debug.Log("Cloised");
         m_WebSocket.OnMessage += OnWebSocketMessage; ;
+    }
+
+    public void Close()
+    {
+        if (m_WebSocket != null)
+        {
+            if (m_WebSocket.IsAlive)
+                m_WebSocket.Close();
+
+            m_WebSocket = null;
+        }
     }
 
     private void Update()
@@ -33,10 +48,10 @@ public class HDKTracker : MonoBehaviour
 
         if (m_DataBuffer.Length == 4)
         {
-            m_Quaternion.x = m_DataBuffer[1];
-            m_Quaternion.y = m_DataBuffer[3];
+            m_Quaternion.x = m_DataBuffer[0];
+            m_Quaternion.y = m_DataBuffer[1];
             m_Quaternion.z = m_DataBuffer[2];
-            m_Quaternion.w = m_DataBuffer[0];
+            m_Quaternion.w = m_DataBuffer[3];
         }
     }
 }
