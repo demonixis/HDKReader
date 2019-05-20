@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HDKFrontEnd"
         mc:Ignorable="d"
-        Title="HDK Reader UI" Height="191.699" Width="258.89" ResizeMode="NoResize">
+        Title="HDK Reader UI" Height="192.541" Width="285.462" ResizeMode="NoResize">
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -13,14 +13,13 @@
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <Label Content="Acceleration" FontWeight="DemiBold" />
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="AccelerationTB" Text="X=0 Y=0, Z=0" Width="200"/>
-            </StackPanel>
-
-            <Label Content="Orientation" FontWeight="DemiBold" />
+            <Label Content="Quaternion" FontWeight="DemiBold" />
             <StackPanel Orientation="Horizontal">
                 <TextBlock x:Name="OrientationTB" Text="X=0, Y=0, Z=0, W=0" Width="200" />
+            </StackPanel>
+            <Label Content="Euler" FontWeight="DemiBold" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="RotationTB" Text="X=0, Y=0, Z=0" Width="200" />
             </StackPanel>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal">

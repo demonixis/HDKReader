@@ -3,21 +3,12 @@ using HDKReader;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Numerics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace HDKFrontEnd
 {
-    public static class UIExtensions
-    {
-        public static void SetThreadSafeValue(this TextBlock thisTextBlock, string text)
-        {
-            thisTextBlock.Dispatcher.BeginInvoke((Action)(() => thisTextBlock.Text = text));
-        }
-    }
-
     public partial class MainWindow : Window
     {
         public enum AppStatus
@@ -46,23 +37,20 @@ namespace HDKFrontEnd
 
         private void UpdateStatus(AppStatus status)
         {
-            StatusTB.SetThreadSafeValue(status.ToString());
+            StatusTB.Text = status.ToString();
         }
 
-        private byte[] buffer;
-
-        private void Loop(object sender, EventArgs e)
+        public Vector3 FromQ(Quaternion q2)
         {
-            if (m_HDKDevice.Fetch())
-            {
-                var values = m_HDKDevice.Quaternion;
-
-                Send(JsonConvert.SerializeObject(values));
-
-                //AccelerationTB.SetThreadSafeValue(Vector3.FromValues(ref values).ToString());
-                OrientationTB.Text = (Quaternion.FromValues(ref values).ToString());
-            }
+            var q = new Quaternion(q2.W, q2.Z, q2.X, q2.Z);
+            Vector3 pitchYawRoll;
+            pitchYawRoll.Y = (float)Math.Atan2(2f * q.X * q.W + 2f * q.Y * q.Z, 1 - 2f * (q.Z * q.Z + q.W * q.W));
+            pitchYawRoll.X = (float)Math.Asin(2f * (q.X * q.Z - q.W * q.Y));
+            pitchYawRoll.Z = (float)Math.Atan2(2f * q.X * q.Y + 2f * q.Z * q.W, 1 - 2f * (q.Y * q.Y + q.Z * q.Z));
+            return new Vector3(Rad2Deg(pitchYawRoll.X), Rad2Deg(pitchYawRoll.Y), Rad2Deg(pitchYawRoll.Z));
         }
+
+        private float Rad2Deg(float rad) => (180.0f * rad / ((float)Math.PI));
 
         private void StartLoop()
         {
@@ -90,6 +78,23 @@ namespace HDKFrontEnd
 
             UpdateStatus(AppStatus.Stopped);
         }
+
+        private void Loop(object sender, EventArgs e)
+        {
+            if (!m_HDKDevice.Fetch())
+                return;
+
+            var values = m_HDKDevice.Quaternion;
+            Send(JsonConvert.SerializeObject(values));
+
+            OrientationTB.Text = string.Format("X: {0:0.000}, Y: {1:0.000}, Z: {2:0.000}, W: {3:0.000}", values[0], values[1], values[2], values[3]);
+
+            var q = new Quaternion(values[0], values[1], values[2], values[3]);
+            var v = FromQ(q);
+            RotationTB.Text = v.ToString();
+        }
+
+        #region Server Management
 
         private void StartServer()
         {
@@ -123,15 +128,6 @@ namespace HDKFrontEnd
             });
         }
 
-        private void Send(string data)
-        {
-            if (m_Server == null)
-                return;
-
-            foreach (var client in m_Clients)
-                client.Send(data);
-        }
-
         private void StopServer()
         {
             if (m_Server == null)
@@ -144,6 +140,17 @@ namespace HDKFrontEnd
             m_Server.Dispose();
             m_Server = null;
         }
+
+        private void Send(string data)
+        {
+            if (m_Server == null)
+                return;
+
+            foreach (var client in m_Clients)
+                client.Send(data);
+        }
+
+        #endregion
 
         private void OnStartClicked(object sender, RoutedEventArgs e) => StartLoop();
         private void OnStopClicked(object sender, RoutedEventArgs e) => StopLoop();

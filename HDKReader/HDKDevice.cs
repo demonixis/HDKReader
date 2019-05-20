@@ -1,6 +1,5 @@
 ﻿using HidSharp;
 using HidSharp.Utility;
-using System;
 
 namespace HDKReader
 {
@@ -10,8 +9,6 @@ namespace HDKReader
         private byte[] m_Buffer = new byte[17];
         private float[] m_Quaternion = new float[4];
 
-        public event Action<bool> DeviceConnected = null;
-
         public ref float[] Quaternion => ref m_Quaternion;
 
         public HDKDevice()
@@ -20,16 +17,25 @@ namespace HDKReader
             HidSharpDiagnostics.PerformStrictChecks = true;
         }
 
-        public void Initialize()
+        public bool Initialize()
         {
-            if (DeviceList.Local.TryGetHidDevice(out HidDevice device, 0x1532, 0x0b00))
-            {
-                Console.WriteLine("HDK Detected. Opening the Stream...");
+            Close();
 
+            var result = DeviceList.Local.TryGetHidDevice(out HidDevice device, 0x1532, 0x0b00);
+
+            if (result)
                 m_Stream = device.Open();
+
+            return result;
+        }
+
+        public void Close()
+        {
+            if (m_Stream != null)
+            {
+                m_Stream.Close();
+                m_Stream = null;
             }
-            else
-                Console.WriteLine("Can't get the HDK");
         }
 
         public bool Fetch(ref byte[] data)
@@ -47,7 +53,7 @@ namespace HDKReader
             if (m_Stream == null)
                 return false;
 
-            m_Buffer = m_Stream.Read();
+            m_Stream.Read(m_Buffer);
 
             if (m_Buffer[1] != 3 && m_Buffer[1] != 19)
                 return false;
@@ -55,17 +61,6 @@ namespace HDKReader
             HDKDataReader.DecodeQuaternion(ref m_Buffer, ref m_Quaternion);
            
             return true;
-        }
-
-        public void Close()
-        {
-            if (m_Stream != null)
-            {
-                m_Stream.Close();
-                m_Stream = null;
-            }
-
-            Console.WriteLine("HDKDevice Shutdown");
         }
     }
 }
