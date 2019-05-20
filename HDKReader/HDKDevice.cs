@@ -1,97 +1,71 @@
-﻿using Device.Net;
-using Hid.Net.Windows;
+﻿using HidSharp;
+using HidSharp.Utility;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace HDKReader
 {
     public class HDKDevice
     {
-#if LIBUSB
-        private const int PollMilliseconds = 6000;
-#else
-        private const int PollMilliseconds = 3000;
-#endif
-
-        private readonly List<FilterDeviceDefinition> m_DeviceDefinitions = new List<FilterDeviceDefinition>
-        {
-            new FilterDeviceDefinition { DeviceType= DeviceType.Hid, VendorId= 0x1532, ProductId=0x0b00, Label="OSVR HMD Communication Device" },
-            new FilterDeviceDefinition { DeviceType= DeviceType.Usb, VendorId= 0x1532, ProductId=0x0b00, Label="OSVR HMD Communication Device" },
-        };
-
-        private DeviceListener m_DeviceListener;
-        internal byte[] DataBuffer;
-
-        public IDevice Device { get; private set; }
+        private HidStream m_Stream;
+        private byte[] m_Buffer = new byte[17];
+        private float[] m_Quaternion = new float[4];
 
         public event Action<bool> DeviceConnected = null;
 
+        public ref float[] Quaternion => ref m_Quaternion;
+
         public HDKDevice()
         {
-            m_DeviceListener = new DeviceListener(m_DeviceDefinitions, PollMilliseconds) { Logger = new DebugLogger() };
-
-            WindowsHidDeviceFactory.Register();
+            HidSharpDiagnostics.EnableTracing = true;
+            HidSharpDiagnostics.PerformStrictChecks = true;
         }
 
         public void Initialize()
         {
-            Device?.Close();
-            m_DeviceListener.DeviceInitialized += OnDeviceInitialized;
-            m_DeviceListener.DeviceDisconnected += OnDeviceDisconnected;
-            m_DeviceListener.Start();
+            if (DeviceList.Local.TryGetHidDevice(out HidDevice device, 0x1532, 0x0b00))
+            {
+                Console.WriteLine("HDK Detected. Opening the Stream...");
 
-            Console.WriteLine("HDKDevice Initialization");
+                m_Stream = device.Open();
+            }
+            else
+                Console.WriteLine("Can't get the HDK");
         }
 
-        public Task InitializeAsync()
+        public bool Fetch(ref byte[] data)
         {
-            return Task.Run(async () =>
-            {
-                var devices = await DeviceManager.Current.GetDevicesAsync(m_DeviceDefinitions);
-                var device = devices.FirstOrDefault();
+            var valid = m_Stream != null;
 
-                if (device == null)
-                    throw new Exception("No devices found");
+            if (valid)
+                data = m_Stream.Read();
 
-                await device.InitializeAsync();
+            return valid;
+        }
 
-                OnDeviceInitialized(this, new DeviceEventArgs(device));
-            });
+        public bool Fetch()
+        {
+            if (m_Stream == null)
+                return false;
+
+            m_Buffer = m_Stream.Read();
+
+            if (m_Buffer[1] != 3 && m_Buffer[1] != 19)
+                return false;
+
+            HDKDataReader.DecodeQuaternion(ref m_Buffer, ref m_Quaternion);
+           
+            return true;
         }
 
         public void Close()
         {
-            Device?.Close();
-            m_DeviceListener.DeviceInitialized -= OnDeviceInitialized;
-            m_DeviceListener.DeviceDisconnected -= OnDeviceDisconnected;
+            if (m_Stream != null)
+            {
+                m_Stream.Close();
+                m_Stream = null;
+            }
 
             Console.WriteLine("HDKDevice Shutdown");
-        }
-
-        public Task Fetch()
-        {
-            return Task.Run(async () =>
-            {
-                DataBuffer = await Device.ReadAsync();
-            });
-        }
-
-        public async Task<byte[]> FetchAsync() => await Device.ReadAsync();
-
-        private void OnDeviceInitialized(object sender, DeviceEventArgs e)
-        {
-            Device = e.Device;
-            DeviceConnected?.Invoke(true);
-            Console.WriteLine("+ Device Connected");
-        }
-
-        private void OnDeviceDisconnected(object sender, DeviceEventArgs e)
-        {
-            Device = null;
-            DeviceConnected?.Invoke(false);
-            Console.WriteLine("- Device Disconnected");
         }
     }
 }

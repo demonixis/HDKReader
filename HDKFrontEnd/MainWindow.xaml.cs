@@ -49,21 +49,19 @@ namespace HDKFrontEnd
             StatusTB.SetThreadSafeValue(status.ToString());
         }
 
+        private byte[] buffer;
+
         private void Loop(object sender, EventArgs e)
         {
-            Task.Run(async () =>
+            if (m_HDKDevice.Fetch())
             {
-                var data = await m_HDKDevice.FetchAsync();
+                var values = m_HDKDevice.Quaternion;
 
-                if (data[1] == 3 || data[1] == 19)
-                {
-                    var values = HDKDataReader.DecodeSensorData(ref data, data.Length);
-                    Send(JsonConvert.SerializeObject(values));
+                Send(JsonConvert.SerializeObject(values));
 
-                    AccelerationTB.SetThreadSafeValue(Vector3.FromValues(ref values).ToString());
-                    OrientationTB.SetThreadSafeValue(Quaternion.FromValues(ref values).ToString());
-                }
-            });
+                //AccelerationTB.SetThreadSafeValue(Vector3.FromValues(ref values).ToString());
+                OrientationTB.Text = (Quaternion.FromValues(ref values).ToString());
+            }
         }
 
         private void StartLoop()

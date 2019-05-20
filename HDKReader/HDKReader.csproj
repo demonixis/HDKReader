@@ -38,16 +38,10 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Device.Net, Version=2.7.0.0, Culture=neutral, PublicKeyToken=918542c6e3a3318a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Device.Net.2.7.0\lib\net45\Device.Net.dll</HintPath>
-    </Reference>
-    <Reference Include="Hid.Net, Version=2.7.0.0, Culture=neutral, PublicKeyToken=918542c6e3a3318a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Hid.Net.2.7.0\lib\net45\Hid.Net.dll</HintPath>
+    <Reference Include="HidSharp, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HidSharp.2.1.0\lib\net35\HidSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="Usb.Net, Version=2.7.0.0, Culture=neutral, PublicKeyToken=918542c6e3a3318a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Usb.Net.2.7.0\lib\net45\Usb.Net.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HDKDataReader.cs" />
