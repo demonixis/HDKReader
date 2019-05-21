@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections;
 using UnityEngine;
 using WebSocketSharp;
 
@@ -7,6 +8,7 @@ public class HDKTracker : MonoBehaviour
     private WebSocket m_WebSocket = null;
     private Quaternion m_Quaternion;
     private float[] m_DataBuffer = new float[7];
+    private bool m_Connected;
 
     private void Start()
     {
