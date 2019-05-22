@@ -75,12 +75,12 @@ namespace HDKFrontEnd
             var values = m_HDKDevice.Quaternion;
             Send(JsonConvert.SerializeObject(values));
 
-            OrientationTB.Text = string.Format("X: {0:0.0}, Y: {1:0.0}, Z: {2:0.0}, W: {3:0.0}", values[0], values[1], values[2], values[3]);
+            OrientationTB.Text = string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}, W: {3:0.00}", values[0], values[1], values[2], values[3]);
 
             var quaternion = new Quaternion(values[0], values[1], values[2], values[3]);
             var euler = MathUtils.ToEuler(quaternion);
             MathUtils.Rad2Deg(ref euler);
-            RotationTB.Text = string.Format("X: {0:0.0}, Y: {1:0.0}, Z: {2:0.0}", euler.X, euler.Y, euler.Z);
+            RotationTB.Text = string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}", euler.X, euler.Y, euler.Z);
         }
 
         #region Server Management

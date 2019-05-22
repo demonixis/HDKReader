@@ -13,8 +13,8 @@ namespace HDKReader
 
         public HDKDevice()
         {
-            HidSharpDiagnostics.EnableTracing = true;
-            HidSharpDiagnostics.PerformStrictChecks = true;
+            HidSharpDiagnostics.EnableTracing = false;
+            HidSharpDiagnostics.PerformStrictChecks = false;
         }
 
         public bool Initialize()
@@ -33,6 +33,7 @@ namespace HDKReader
         {
             if (m_Stream != null)
             {
+                m_Stream.Dispose();
                 m_Stream.Close();
                 m_Stream = null;
             }

@@ -1,50 +1,38 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using UnityEngine;
 using WebSocketSharp;
 
-public class HDKTracker : MonoBehaviour
+public class HDKNetTracker : MonoBehaviour
 {
     private WebSocket m_WebSocket = null;
     private Quaternion m_Quaternion;
+    private Coroutine m_ConnectCoroutine;
+    private Transform m_Transform;
     private float[] m_DataBuffer = new float[7];
     private bool m_Connected;
 
     private void Start()
     {
-        Connect();
-    }
-
-    public void Connect()
-    {
-        if (m_WebSocket != null)
-            return;
+        m_Transform = transform;
 
         m_WebSocket = new WebSocket($"ws://127.0.0.1:8181");
         m_WebSocket.ConnectAsync();
-
-        m_WebSocket.OnError += (s, e) => Debug.Log(e.Message);
-        m_WebSocket.OnClose += (s, e) => Debug.Log("Cloised");
-        m_WebSocket.OnMessage += OnWebSocketMessage; ;
+        m_WebSocket.OnMessage += OnWebSocketServerMessage;
     }
 
-    public void Close()
+    private void OnDestroy()
     {
-        if (m_WebSocket != null)
-        {
-            if (m_WebSocket.IsAlive)
-                m_WebSocket.Close();
-
-            m_WebSocket = null;
-        }
+        m_WebSocket?.Close();
     }
 
     private void Update()
     {
-        transform.rotation = m_Quaternion;
+        m_Transform.rotation = m_Quaternion;
     }
 
-    private void OnWebSocketMessage(object sender, MessageEventArgs e)
+    private void OnWebSocketServerMessage(object sender, MessageEventArgs e)
     {
         m_DataBuffer = JsonConvert.DeserializeObject<float[]>(e.Data);
 

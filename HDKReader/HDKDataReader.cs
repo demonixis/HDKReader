@@ -19,7 +19,19 @@
             output[3] = w;
         }
 
-        private static short Read16(ref byte[] arr, int index)
+        public static void DecodeQuaternion(ref byte[] input, ref float x, ref float y, ref float z, ref float w)
+        {
+            // 0: 0
+            // 1: Code
+            // 2: Sequence
+            var index = 3;
+            x = (float)Read16(ref input, index) / (float)(1 << 14);
+            y = (float)Read16(ref input, index + 2) / (float)(1 << 14);
+            z = (float)Read16(ref input, index + 4) / (float)(1 << 14);
+            w = (float)Read16(ref input, index + 6) / (float)(1 << 14);
+        }
+
+        public static short Read16(ref byte[] arr, int index)
         {
             byte lsb = arr[index];
             byte msb = arr[index + 1];
