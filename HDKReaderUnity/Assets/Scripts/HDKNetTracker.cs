@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections;
 using UnityEngine;
 using WebSocketSharp;
 
@@ -10,6 +8,7 @@ public class HDKNetTracker : MonoBehaviour
     private Quaternion m_Quaternion;
     private Coroutine m_ConnectCoroutine;
     private Transform m_Transform;
+    private readonly Quaternion m_RotationFix = new Quaternion(Mathf.Sqrt(0.5f), 0.0f, 0.0f, Mathf.Sqrt(0.5f));
     private float[] m_DataBuffer = new float[7];
     private bool m_Connected;
 
@@ -29,7 +28,7 @@ public class HDKNetTracker : MonoBehaviour
 
     private void Update()
     {
-        m_Transform.rotation = m_Quaternion;
+        m_Transform.localRotation = m_Quaternion;
     }
 
     private void OnWebSocketServerMessage(object sender, MessageEventArgs e)
@@ -42,6 +41,13 @@ public class HDKNetTracker : MonoBehaviour
             m_Quaternion.y = m_DataBuffer[1];
             m_Quaternion.z = m_DataBuffer[2];
             m_Quaternion.w = m_DataBuffer[3];
+
+            m_Quaternion = m_Quaternion * m_RotationFix;
+
+            var tmp = m_Quaternion.y;
+            m_Quaternion.w = -m_Quaternion.w;
+            m_Quaternion.y = m_Quaternion.z;
+            m_Quaternion.z = tmp;
         }
     }
 }

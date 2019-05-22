@@ -1,12 +1,13 @@
 ﻿using HidSharp;
 using HidSharp.Utility;
+using System.Threading;
 
 namespace HDKReader
 {
     public class HDKDevice
     {
         private HidStream m_Stream;
-        private byte[] m_Buffer = new byte[17];
+        private byte[] m_Buffer;
         private float[] m_Quaternion = new float[4];
 
         public ref float[] Quaternion => ref m_Quaternion;
@@ -24,7 +25,11 @@ namespace HDKReader
             var result = DeviceList.Local.TryGetHidDevice(out HidDevice device, 0x1532, 0x0b00);
 
             if (result)
+            {
                 m_Stream = device.Open();
+                m_Stream.ReadTimeout = Timeout.Infinite;
+                m_Buffer = new byte[device.GetMaxInputReportLength()];
+            }
 
             return result;
         }
@@ -54,9 +59,6 @@ namespace HDKReader
                 return false;
 
             m_Stream.Read(m_Buffer);
-
-            if (m_Buffer[1] != 3 && m_Buffer[1] != 19)
-                return false;
 
             HDKDataReader.DecodeQuaternion(ref m_Buffer, ref m_Quaternion);
            

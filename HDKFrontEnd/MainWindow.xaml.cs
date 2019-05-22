@@ -4,11 +4,21 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace HDKFrontEnd
 {
+    public static class UIExtension
+    {
+        public static void SetText(this TextBlock block, string text)
+        {
+            block.Dispatcher.BeginInvoke((Action)(() => block.Text = text));
+        }
+    }
+
     public partial class MainWindow : Window
     {
         public enum AppStatus
@@ -16,12 +26,11 @@ namespace HDKFrontEnd
             Stopped, Starting, Started
         }
 
-        public delegate void UpdateTextCallback(string message);
-
         private HDKDevice m_HDKDevice;
-        private DispatcherTimer m_DispatchTimer;
         private WebSocketServer m_Server;
         private List<IWebSocketConnection> m_Clients;
+        private Thread m_Thread;
+        private bool m_IsRunning;
 
         public MainWindow()
         {
@@ -44,10 +53,8 @@ namespace HDKFrontEnd
         {
             StopLoop();
 
-            m_DispatchTimer = new DispatcherTimer();
-            m_DispatchTimer.Interval = TimeSpan.FromMilliseconds(1);
-            m_DispatchTimer.Tick += Loop;
-            m_DispatchTimer.Start();
+            m_Thread = new Thread(new ThreadStart(Loop));
+            m_Thread.Start();
 
             StartServer();
 
@@ -56,15 +63,45 @@ namespace HDKFrontEnd
 
         private void StopLoop()
         {
-            if (m_DispatchTimer == null)
+            if (m_Thread == null)
                 return;
 
-            m_DispatchTimer.Stop();
-            m_DispatchTimer = null;
+            if (m_Thread.IsAlive)
+            {
+                m_IsRunning = false;
+                m_Thread.Join();
+                m_Thread = null;
+            }
 
             StopServer();
 
             UpdateStatus(AppStatus.Stopped);
+        }
+
+        private void Loop()
+        {
+            m_IsRunning = true;
+
+            while (m_IsRunning)
+            {
+                if (!m_HDKDevice.Fetch())
+                {
+                    Thread.Sleep(100);
+                    return;
+                }
+
+                var values = m_HDKDevice.Quaternion;
+                Send(JsonConvert.SerializeObject(values));
+
+#if DEBUG
+                OrientationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}, W: {3:0.00}", values[0], values[1], values[2], values[3]));
+
+                var quaternion = new Quaternion(values[0], values[1], values[2], values[3]);
+                var euler = MathUtils.ToEuler(quaternion);
+                MathUtils.Rad2Deg(ref euler);
+                RotationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}", euler.X, euler.Y, euler.Z));
+#endif
+            }
         }
 
         private void Loop(object sender, EventArgs e)

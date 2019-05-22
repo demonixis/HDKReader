@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDKFrontEnd", "HDKFrontEnd\HDKFrontEnd.csproj", "{C4DE2604-505A-4F3C-BDD2-1D0046E541E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDKReader", "HDKReader\HDKReader.csproj", "{57D9085F-C01F-4958-B701-0CF0417325CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HDKReader", "HDKReader\HDKReader.csproj", "{57D9085F-C01F-4958-B701-0CF0417325CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
