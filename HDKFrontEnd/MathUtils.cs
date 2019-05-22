@@ -36,7 +36,6 @@ namespace HDKFrontEnd
                 return 0;
         }
 
-        //returns Euler angles that point from one point to another
         public static Vector3 AngleTo(Vector3 from, Vector3 location)
         {
             Vector3 angle = new Vector3();
@@ -51,7 +50,9 @@ namespace HDKFrontEnd
             var rotation = new Quaternion(x, y, z, w);
             var forward = Vector3.Transform(new Vector3(1, 0, 0), rotation);
             var up = Vector3.Transform(new Vector3(0, 1, 0), rotation);
+
             result = AngleTo(new Vector3(), forward);
+
             if (result.X == (float)Math.PI)
             {
                 result.Y = ArcTanAngle(up.Z, up.X);

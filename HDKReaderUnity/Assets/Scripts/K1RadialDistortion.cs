@@ -29,9 +29,9 @@ namespace OSVR.Unity
 	[RequireComponent(typeof(Camera))]
 	public class K1RadialDistortion : MonoBehaviour
 	{
-		public float k1Red = 0.0f;
-		public float k1Green = 0.0f;
-		public float k1Blue = 0.0f;
+		public float k1Red = 0.15f;
+		public float k1Green = 0.15f;
+		public float k1Blue = 0.15f;
 		public Vector2 center = new Vector2(0.5f, 0.5f);
 		private Material DistortionMaterial;
 

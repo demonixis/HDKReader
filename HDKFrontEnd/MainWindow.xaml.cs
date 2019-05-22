@@ -7,7 +7,6 @@ using System.Numerics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace HDKFrontEnd
 {
@@ -37,7 +36,7 @@ namespace HDKFrontEnd
             InitializeComponent();
 
             m_HDKDevice = new HDKDevice();
-            m_HDKDevice.Initialize();
+            m_HDKDevice.Start();
 
             m_Clients = new List<IWebSocketConnection>();
 
@@ -82,42 +81,35 @@ namespace HDKFrontEnd
         {
             m_IsRunning = true;
 
+            var data = new byte[m_HDKDevice.BufferMaxLength];
+            var quaternion = new float[4];
+            var angularVelocity = new float[3];
+            var status = HDKStatus.Unknown;
+
             while (m_IsRunning)
             {
-                if (!m_HDKDevice.Fetch())
+                if (!m_HDKDevice.Fetch(data))
                 {
                     Thread.Sleep(100);
                     return;
                 }
 
-                var values = m_HDKDevice.Quaternion;
-                Send(JsonConvert.SerializeObject(values));
+                status = HDKDataReader.DecodeStatus(data);
+                HDKDataReader.DecodeQuaternion(data, quaternion);
+                HDKDataReader.DecodeAngularVelocity(data, angularVelocity);
 
-#if DEBUG
-                OrientationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}, W: {3:0.00}", values[0], values[1], values[2], values[3]));
+                Send(JsonConvert.SerializeObject(quaternion));
 
-                var quaternion = new Quaternion(values[0], values[1], values[2], values[3]);
-                var euler = MathUtils.ToEuler(quaternion);
+                HDKStatusTB.SetText(status.ToString());
+                OrientationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}, W: {3:0.00}", quaternion[0], quaternion[1], quaternion[2], quaternion[3]));
+
+                var q = new Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+                var euler = MathUtils.ToEuler(q);
                 MathUtils.Rad2Deg(ref euler);
                 RotationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}", euler.X, euler.Y, euler.Z));
-#endif
+
+                AngularAccelerationTB.SetText(string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}", angularVelocity[0], angularVelocity[1], angularVelocity[2]));
             }
-        }
-
-        private void Loop(object sender, EventArgs e)
-        {
-            if (!m_HDKDevice.Fetch())
-                return;
-
-            var values = m_HDKDevice.Quaternion;
-            Send(JsonConvert.SerializeObject(values));
-
-            OrientationTB.Text = string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}, W: {3:0.00}", values[0], values[1], values[2], values[3]);
-
-            var quaternion = new Quaternion(values[0], values[1], values[2], values[3]);
-            var euler = MathUtils.ToEuler(quaternion);
-            MathUtils.Rad2Deg(ref euler);
-            RotationTB.Text = string.Format("X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00}", euler.X, euler.Y, euler.Z);
         }
 
         #region Server Management

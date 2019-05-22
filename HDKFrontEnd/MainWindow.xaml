@@ -5,29 +5,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HDKFrontEnd"
         mc:Ignorable="d"
-        Title="HDK Reader UI" Height="192.541" Width="285.462" ResizeMode="NoResize">
-    <Grid Margin="5">
+        Title="HDK Reader UI" Height="275.207" Width="280.128" ResizeMode="NoResize">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="30" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0">
+        <StackPanel Grid.Row="0" Margin="5">
+            <TextBlock Text="HDK Status" FontWeight="DemiBold" />
+            <StackPanel Orientation="Horizontal" Margin="10, 0, 0, 0">
+                <TextBlock x:Name="HDKStatusTB" Text="Status Unknow" />
+            </StackPanel>
+            <Rectangle HorizontalAlignment="Stretch" Fill="LightGray" Height="1" Margin="0, 5, 0, 0"/>
             <Label Content="Quaternion" FontWeight="DemiBold" />
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10, 0, 0, 0">
                 <TextBlock x:Name="OrientationTB" Text="X=0, Y=0, Z=0, W=0" Width="200" />
             </StackPanel>
+            <Rectangle HorizontalAlignment="Stretch" Fill="LightGray" Height="1" Margin="0, 5, 0, 0"/>
             <Label Content="Euler" FontWeight="DemiBold" />
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10, 0, 0, 0">
                 <TextBlock x:Name="RotationTB" Text="X=0, Y=0, Z=0" Width="200" />
             </StackPanel>
+            <Rectangle HorizontalAlignment="Stretch" Fill="LightGray" Height="1" Margin="0, 5, 0, 0"/>
+            <Label Content="Angular Acceleration" FontWeight="DemiBold" />
+            <StackPanel Orientation="Horizontal" Margin="10, 0, 0, 0">
+                <TextBlock x:Name="AngularAccelerationTB" Text="X=0, Y=0, Z=0" Width="200" />
+            </StackPanel>
+            <Rectangle HorizontalAlignment="Stretch" Fill="LightGray" Height="1" Margin="0, 5, 0, 0"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button Content="Start" Width="100" Margin="0, 0, 15, 0" Click="OnStartClicked" />
-            <Button Content="Stop" Width="100" Click="OnStopClicked" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0, 0, 0, 5" HorizontalAlignment="Center">
+            <Button Content="Start" Width="120" Margin="0, 0, 15, 0" Click="OnStartClicked" />
+            <Button Content="Stop" Width="120" Click="OnStopClicked" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <TextBlock x:Name="StatusTB" Text="Not Connected" Margin="2" />
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Background="LightGray">
+            <TextBlock x:Name="StatusTB" HorizontalAlignment="Right" Text="Not Connected" Margin="2" />
         </StackPanel>
     </Grid>
 </Window>
