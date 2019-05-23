@@ -22,6 +22,8 @@ namespace HDKReader
         private float[] m_AngularVelocity = new float[3];
         private HDKStatus m_HDKStatus = HDKStatus.Unknown;
 
+        public bool IsHDK2 { get; protected set; }
+        public string SerialNumber { get; protected set; }
         public int BufferMaxLength { get; protected set; }
 
         public ref float[] Quaternion => ref m_Quaternion;
@@ -50,7 +52,10 @@ namespace HDKReader
                 m_Stream = device.Open();
                 m_Stream.ReadTimeout = Timeout.Infinite;
                 m_Buffer = new byte[device.GetMaxInputReportLength()];
+
                 BufferMaxLength = m_Buffer.Length;
+                IsHDK2 = device.GetProductName() != "OSVR  HDK 1.x";
+                SerialNumber = device.GetSerialNumber();
             }
 
             return result;
