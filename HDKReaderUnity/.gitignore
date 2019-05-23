@@ -41,7 +41,4 @@ Thumbs.db.meta
 /AssetHunterBackup/
 /SerializedBuildInfo/
 
-!/Builds/install-neo.bat
-!/Builds/install-wavevr.bat
-!/Builds/install-pico.bat
-!/Builds/install-oculus.bat
+!/Packages

@@ -16,7 +16,9 @@ public class HDKNetTracker : MonoBehaviour
     private Coroutine m_ConnectCoroutine = null;
     private Transform m_Transform = null;
     private Quaternion m_Quaternion;
-
+    private Material m_PreviewMaterial;
+    private Camera[] m_Cameras = new Camera[2];
+    private RenderTexture m_RenderTexture = null;
     private float[] m_DataBuffer = new float[7];
     private bool m_Connected;
 
@@ -30,17 +32,29 @@ public class HDKNetTracker : MonoBehaviour
         if (m_AutoConstruct)
         {
             var camera = GetComponent<Camera>();
-            camera.enabled = false;
+            camera.enabled = true;
 
-            var leftEye = CreateCamera("LeftEye", camera, true);
-            var rightEye = CreateCamera("RightEye", camera, false);
+            m_Cameras[0] = CreateCamera("LeftEye", camera, true);
+            m_Cameras[1] = CreateCamera("RightEye", camera, false);
+
+            m_RenderTexture = new RenderTexture(1920, 1080, 24);
+            m_PreviewMaterial = new Material(
+                 "Shader \"Hidden/Invert\" {" +
+                 "SubShader {" +
+                 "    Pass {" +
+                 "        ZTest Always Cull Off ZWrite Off" +
+                 "        SetTexture [_RenderTex] { combine one-texture }" +
+                 "    }" +
+                 "}" +
+                 "}"
+             );
 
 #if UNITY_POST_PROCESSING_STACK_V2
             var layer = GetComponent<PostProcessLayer>();
             if (layer != null)
             {
-                CopyPostProcessing(layer, leftEye);
-                CopyPostProcessing(layer, rightEye);
+                CopyPostProcessing(layer, m_Cameras[0].gameObject);
+                CopyPostProcessing(layer, m_Cameras[1].gameObject);
                 layer.enabled = false;
             }
 #endif 
@@ -56,15 +70,58 @@ public class HDKNetTracker : MonoBehaviour
         m_Transform.localRotation = m_Quaternion;
     }
 
+    private void OnPreRender()
+    {
+        RenderTexture.active = m_RenderTexture;
+
+        foreach (var camera in m_Cameras)
+        {
+            camera.Render();
+
+            DrawFullScreenQuad(m_PreviewMaterial);
+        }
+
+        RenderTexture.active = null;
+    }
+
+    public static void DrawFullScreenQuad(Material material)
+    {
+        GL.PushMatrix();
+        GL.LoadOrtho();
+
+        var i = 0;
+        while (i < material.passCount)
+        {
+            material.SetPass(i);
+            GL.Begin(GL.QUADS);
+            GL.Color(Color.white);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(0, 0, 0.1f);
+
+            GL.TexCoord2(1, 0);
+            GL.Vertex3(1, 0, 0.1f);
+
+            GL.TexCoord2(1, 1);
+            GL.Vertex3(1, 1, 0.1f);
+
+            GL.TexCoord2(0, 1);
+            GL.Vertex3(0, 1, 0.1f);
+            GL.End();
+            ++i;
+        }
+
+        GL.PopMatrix();
+    }
+
     #region SDK Setup
 
-    private GameObject CreateCamera(string name, Camera parent, bool left)
+    private Camera CreateCamera(string name, Camera parent, bool left)
     {
         var eyeGameObject = new GameObject(name);
         eyeGameObject.layer = parent.gameObject.layer;
         eyeGameObject.AddComponent<K1RadialDistortion>();
 
-        var eyeCamera = eyeGameObject.AddComponent<Camera>();
+        var eyeCamera = eyeGameObject.GetComponent<Camera>();
         eyeCamera.depth = 3;
         eyeCamera.renderingPath = parent.renderingPath;
         eyeCamera.useOcclusionCulling = parent.useOcclusionCulling;
@@ -78,13 +135,14 @@ public class HDKNetTracker : MonoBehaviour
         eyeCamera.cullingMask = parent.cullingMask;
         eyeCamera.backgroundColor = parent.backgroundColor;
         eyeCamera.stereoTargetEye = left ? StereoTargetEyeMask.Left : StereoTargetEyeMask.Right;
+        eyeCamera.enabled = false;
 
         var eyeTransform = eyeGameObject.transform;
         eyeTransform.parent = parent.transform;
         eyeTransform.localPosition = new Vector3(EyeOffset * (left ? -1.0f : 1.0f), 0.0f, 0.0f);
         eyeTransform.localRotation = Quaternion.identity;
 
-        return eyeGameObject;
+        return eyeCamera;
     }
 
 #if UNITY_POST_PROCESSING_STACK_V2
@@ -97,6 +155,7 @@ public class HDKNetTracker : MonoBehaviour
         eyeLayer.stopNaNPropagation = layer.stopNaNPropagation;
         eyeLayer.volumeLayer = layer.volumeLayer;
         eyeLayer.volumeTrigger = layer.volumeTrigger;
+        eyeLayer.enabled = false;// PostProcessResources is not copied, we've to use relection for that.
     }
 #endif
 
